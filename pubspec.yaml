@@ -18,6 +18,9 @@ dependencies:
   sliding_up_panel: ^2.0.0+1
   flutter_sliding_up_panel: ^2.0.1
   cupertino_icons: ^1.0.2
+  day_night_time_picker: ^1.2.0+2
+  sqflite: ^2.2.8+4
+  path: ^1.8.3
 
 dev_dependencies:
   flutter_test:
