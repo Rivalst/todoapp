@@ -11,24 +11,36 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const colorBlue = Color(0xFF8280FF);
+    const greyColor = Color(0xFFB4B4C6);
+
     return ChangeNotifierProvider(
-      create: (context) => appStateChange(),
+      create: (context) => AppStateChange(),
       child: MaterialApp(
         title: 'Flutter Demo',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(useMaterial3: true),
+        theme: ThemeData(
+            useMaterial3: true,
+            inputDecorationTheme: const InputDecorationTheme(
+                enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(width: 1, color: greyColor),
+                    borderRadius: BorderRadius.all(Radius.circular(10.0))),
+                focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(width: 2, color: colorBlue),
+                    borderRadius: BorderRadius.all(Radius.circular(10.0))),
+                labelStyle: TextStyle(color: colorBlue))),
         home: const MyHomePage(),
       ),
     );
   }
 }
 
-class appStateChange extends ChangeNotifier {
+class AppStateChange extends ChangeNotifier {
   String _nameToDo = '';
   String _selectedOptionRemind = '';
   String _selectedOptionPriority = '';
 
-  List _toDo = [];
+  final List _toDo = [];
 
   get selectedOptionRemind => _selectedOptionRemind;
 
@@ -55,7 +67,7 @@ class appStateChange extends ChangeNotifier {
 
   void createListToDo() {
     String safeColor = 'green';
-    String safeRemind = 'An hour before';
+    // String safeRemind = 'An hour before';
 
     if (_nameToDo.isNotEmpty) {
       _toDo.add({

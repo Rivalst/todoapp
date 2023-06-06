@@ -87,23 +87,15 @@ packages:
     source: sdk
     version: "0.0.0"
   flutter_lints:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: flutter_lints
       sha256: aeb0b80a8b3709709c9cc496cdc027c5b3216796bc0af0ce1007eaf24464fd4c
       url: "https://pub.dev"
     source: hosted
     version: "2.0.1"
-  flutter_screenutil:
-    dependency: "direct dev"
-    description:
-      name: flutter_screenutil
-      sha256: "1b61f8c4cbf965104b6ca7160880ff1af6755aad7fec70b58444245132453745"
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.8.4"
   flutter_sliding_up_panel:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: flutter_sliding_up_panel
       sha256: "60fdb281d2a81047dadecb931f9b53b6f7189680cd71f898441073207ff90e6f"
@@ -121,7 +113,7 @@ packages:
     source: sdk
     version: "0.0.0"
   google_fonts:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: google_fonts
       sha256: "2776c66b3e97c6cdd58d1bd3281548b074b64f1fd5c8f82391f7456e38849567"
@@ -273,7 +265,7 @@ packages:
     source: hosted
     version: "4.2.4"
   provider:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: provider
       sha256: cdbe7530b12ecd9eb455bdaa2fcb8d4dad22e80b8afb4798b41479d5ce26847f
@@ -281,7 +273,7 @@ packages:
     source: hosted
     version: "6.0.5"
   shared_preferences:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: shared_preferences
       sha256: "16d3fb6b3692ad244a695c0183fca18cf81fd4b821664394a781de42386bf022"
@@ -342,7 +334,7 @@ packages:
     source: sdk
     version: "0.0.99"
   sliding_up_panel:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: sliding_up_panel
       sha256: "578e90956a6212d1e406373250b2436a0f3afece29aee3c24c8360094d6cf968"
@@ -431,4 +423,4 @@ packages:
     version: "1.0.0"
 sdks:
   dart: ">=3.0.0 <4.0.0"
-  flutter: ">=3.10.0"
+  flutter: ">=3.3.0"
