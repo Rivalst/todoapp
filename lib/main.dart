@@ -22,9 +22,7 @@ class MyApp extends StatelessWidget {
 
     return ChangeNotifierProvider(
       create: (context) => AppStateChange()
-        ..openDatabase()
-        ..loadTodoList()
-      ,
+        ..openDatabase(),
       child: MaterialApp(
         title: 'Flutter Demo',
         debugShowCheckedModeBanner: false,
@@ -63,7 +61,7 @@ class DatabaseHelper {
             colorMark TEXT,
             remind INTEGER,
             time INTEGER,
-            timeClock TEXT
+            timeClock TEXT,
           )
         ''');
       },
@@ -82,6 +80,14 @@ class DatabaseHelper {
     await _database.delete('todo', where: 'id = ?', whereArgs: [id]);
   }
 
+  Future<void> deleteTodoItemByName(String name) async {
+    await _database.delete(
+      'todo',
+      where: 'name = ?',
+      whereArgs: [name],
+    );
+  }
+
 }
 
 class AppStateChange extends ChangeNotifier {
@@ -90,6 +96,7 @@ class AppStateChange extends ChangeNotifier {
   String _selectedOptionPriority = '';
   String _timeClock = '';
   bool _timeSet = false;
+  bool done = false;
 
   final List<Map<String, dynamic>> _toDo = [];
 
@@ -111,11 +118,12 @@ class AppStateChange extends ChangeNotifier {
 
   Future<void> openDatabase() async {
     await _databaseHelper.open();
+    await loadTodoList();
   }
 
   Future<void> loadTodoList() async {
     final List<Map<String, dynamic>> todoList = await _databaseHelper.getTodoList();
-    // _toDo.clear();
+    _toDo.clear();
     _toDo.addAll(todoList);
     notifyListeners();
   }
@@ -182,6 +190,12 @@ class AppStateChange extends ChangeNotifier {
 
   void deleteListToDo(String value) async {
     _toDo.removeWhere((item) => item['name'] == value);
+    await _databaseHelper.deleteTodoItemByName(value);
+    notifyListeners();
+  }
+
+  void updateDone(){
+    done = !done;
     notifyListeners();
   }
 

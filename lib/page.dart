@@ -186,7 +186,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                 ],
               )),
           Padding(
-              padding: const EdgeInsets.all(4.0),
+              padding: const EdgeInsets.fromLTRB(0.0, 4.0, 0.0, 60.0),
               child: appState.lengthToDoList == 0
                   ? Center(
                       child: Text(
@@ -204,10 +204,11 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                         bool mark = item['mark'] == 0 ? false : true;
                         bool remind = item['remind'] == 0 ? false : true;
                         bool notify = item['time'] == 0 ? false : true;
-                        return todoContainer(name,
-                            mark: mark,
-                            selectMark: selectColor,
-                            remind: remind,
+                        return todoContainer(
+                          name,
+                          mark: mark,
+                          selectMark: selectColor,
+                          remind: remind,
                           notifi: notify,
                           timeAlarm: timeClock,
                         );
@@ -218,7 +219,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       ),
     ));
   }
-
   Widget todoContainer(String todo, //Main widgets for view To Do
       {String timeAlarm = '',
       bool notifi = false,
@@ -234,25 +234,50 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
     Color selectColor = colorsMap[selectMark]!;
 
-    return Dismissible(
-      key: Key(todo),
-      onDismissed: (_) {
-        appState.deleteListToDo(todo);
-      },
-      background: Card(
-        color: redColorOpacity,
-        child: Container(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      child: Dismissible(
+        key: Key(todo),
+        onDismissed: (_) {
+          appState.deleteListToDo(todo);
+        },
+        confirmDismiss: (_) async {
+          return await showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text("Confirm Deletion"),
+                content:
+                    const Text("Are you sure you want to delete this To Do?"),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text("CANCEL"),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: const Text("DELETE"),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+        background: Container(
           alignment: Alignment.centerRight,
-          padding: const EdgeInsets.symmetric(horizontal: 6.0),
-          child: const Icon(
-            Icons.delete,
-            color: redColor,
+          decoration: BoxDecoration(
+            color: redColorOpacity,
+            borderRadius: BorderRadius.circular(6.0),
+          ),
+          child: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
+            child: Icon(
+              Icons.delete,
+              color: redColor,
+            ),
           ),
         ),
-      ),
-      direction: DismissDirection.endToStart,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        direction: DismissDirection.endToStart,
         child: Container(
           width: 360,
           height: 70,
@@ -273,17 +298,27 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             children: [
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Container(
-                  alignment: Alignment.center,
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.grey, width: 1.5),
-                  ),
-                  child: const Icon(
-                    Icons.done,
-                    color: Colors.grey,
+                child: GestureDetector(
+                  onTap: () {
+                    appState.updateDone();
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    alignment: Alignment.center,
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: appState.done ? orangeColor : Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                          color: appState.done ? Colors.white : Colors.grey,
+                          width: 1.5),
+                    ),
+                    child: Icon(
+                      Icons.done,
+                      color: appState.done ? Colors.white : Colors.grey,
+                    ),
                   ),
                 ),
               ),
@@ -487,14 +522,14 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                   height: 40,
                   child: ElevatedButton(
                       onPressed: () {
-                        if(appState.nameToDo != ''){
-                        appState.updateTimeClock(timeClock);
-                        appState.createListToDo();
-                        _controller.clear();
+                        if (appState.nameToDo != '') {
+                          appState.updateTimeClock(timeClock);
+                          appState.createListToDo();
+                          _controller.clear();
                         } else {
                           showDialog(
                               context: context,
-                              builder: (BuildContext context){
+                              builder: (BuildContext context) {
                                 Timer(const Duration(seconds: 3), () {
                                   Navigator.of(context).pop();
                                 });
@@ -503,8 +538,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                                   title: Text('Warning'),
                                   content: Text('Your todo can not be empty'),
                                 );
-                              }
-                          );
+                              });
                         }
                       },
                       style: ButtonStyle(
@@ -513,9 +547,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                           overlayColor: MaterialStateProperty.all<Color>(
                               blueColorOpacity)),
                       child: Text('SAVE',
-                          style: GoogleFonts.ubuntu(color: Colors.white)
-                      )
-                  ),
+                          style: GoogleFonts.ubuntu(color: Colors.white))),
                 ),
               )
             ],
