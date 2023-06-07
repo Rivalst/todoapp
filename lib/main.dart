@@ -10,7 +10,6 @@ void main() async {
   runApp(const MyApp());
 }
 
-DatabaseHelper dataB = DatabaseHelper();
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -47,14 +46,14 @@ class DatabaseHelper {
 
   Future<void> open() async {
     final databasePath = await getDatabasesPath();
-    final path = join(databasePath, 'todo.db');
+    final path = join(databasePath, 'todo2.db');
 
     _database = await openDatabase(
       path,
       version: 1,
       onCreate: (db, version) {
         return db.execute('''
-          CREATE TABLE todo(
+          CREATE TABLE todo2(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT,
             mark INTEGER,
@@ -62,6 +61,7 @@ class DatabaseHelper {
             remind INTEGER,
             time INTEGER,
             timeClock TEXT,
+            done INTEGER
           )
         ''');
       },
@@ -69,24 +69,35 @@ class DatabaseHelper {
   }
 
   Future<List<Map<String, dynamic>>> getTodoList() async {
-    return _database.query('todo');
+    return _database.query('todo2');
   }
 
   Future<void> insertTodoItem(Map<String, dynamic> item) async {
-    await _database.insert('todo', item);
+    await _database.insert('todo2', item);
   }
 
   Future<void> deleteTodoItem(int id) async {
-    await _database.delete('todo', where: 'id = ?', whereArgs: [id]);
+    await _database.delete('todo2', where: 'id = ?', whereArgs: [id]);
   }
 
   Future<void> deleteTodoItemByName(String name) async {
     await _database.delete(
-      'todo',
+      'todo2',
       where: 'name = ?',
       whereArgs: [name],
     );
   }
+
+  Future<void>updateToDo(String name, int value) async {
+    await _database.update(
+      'todo2',
+      {'done': value}, // Update 'done' value in the database (1 represents true)
+      where: 'name = ?',
+      whereArgs: [name],
+    );
+  }
+
+
 
 }
 
@@ -96,7 +107,6 @@ class AppStateChange extends ChangeNotifier {
   String _selectedOptionPriority = '';
   String _timeClock = '';
   bool _timeSet = false;
-  bool done = false;
 
   final List<Map<String, dynamic>> _toDo = [];
 
@@ -135,6 +145,11 @@ class AppStateChange extends ChangeNotifier {
 
   Future<void> deleteTodoItem(int id) async {
     await _databaseHelper.deleteTodoItem(id);
+    await loadTodoList();
+  }
+
+  Future<void> updateDoneItem(String name, int value) async {
+    await _databaseHelper.updateToDo(name, value);
     await loadTodoList();
   }
 
@@ -177,6 +192,7 @@ class AppStateChange extends ChangeNotifier {
         'remind': _selectedOptionRemind.isNotEmpty ? true : false,
         'time': timeSet,
         'timeClock': _timeClock,
+        'done': 0,
       });
       _nameToDo = '';
       _selectedOptionPriority = '';
@@ -191,11 +207,6 @@ class AppStateChange extends ChangeNotifier {
   void deleteListToDo(String value) async {
     _toDo.removeWhere((item) => item['name'] == value);
     await _databaseHelper.deleteTodoItemByName(value);
-    notifyListeners();
-  }
-
-  void updateDone(){
-    done = !done;
     notifyListeners();
   }
 

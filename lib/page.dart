@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'main.dart';
 import 'dart:async';
+import 'widgets.dart';
 import 'package:provider/provider.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -204,13 +205,17 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                         bool mark = item['mark'] == 0 ? false : true;
                         bool remind = item['remind'] == 0 ? false : true;
                         bool notify = item['time'] == 0 ? false : true;
-                        return todoContainer(
-                          name,
+                        bool done = item['done'] == 0 ? false : true;
+                        return ToDoContainer(
+                          appState,
+                          done: done,
+                          todo: name,
                           mark: mark,
                           selectMark: selectColor,
                           remind: remind,
                           notifi: notify,
                           timeAlarm: timeClock,
+                          // done: done,
                         );
                       },
                     )),
@@ -218,148 +223,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         ],
       ),
     ));
-  }
-  Widget todoContainer(String todo, //Main widgets for view To Do
-      {String timeAlarm = '',
-      bool notifi = false,
-      bool mark = false,
-      bool remind = false,
-      String selectMark = 'green'}) {
-    var appState = context.watch<AppStateChange>();
-    var colorsMap = {
-      'green': greenColor,
-      'orange': orangeColor,
-      'red': redColor,
-    };
-
-    Color selectColor = colorsMap[selectMark]!;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-      child: Dismissible(
-        key: Key(todo),
-        onDismissed: (_) {
-          appState.deleteListToDo(todo);
-        },
-        confirmDismiss: (_) async {
-          return await showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text("Confirm Deletion"),
-                content:
-                    const Text("Are you sure you want to delete this To Do?"),
-                actions: <Widget>[
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: const Text("CANCEL"),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: const Text("DELETE"),
-                  ),
-                ],
-              );
-            },
-          );
-        },
-        background: Container(
-          alignment: Alignment.centerRight,
-          decoration: BoxDecoration(
-            color: redColorOpacity,
-            borderRadius: BorderRadius.circular(6.0),
-          ),
-          child: const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0),
-            child: Icon(
-              Icons.delete,
-              color: redColor,
-            ),
-          ),
-        ),
-        direction: DismissDirection.endToStart,
-        child: Container(
-          width: 360,
-          height: 70,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(6.0),
-            border: Border.all(color: Colors.grey.withOpacity(0.3), width: 1.0),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.2),
-                spreadRadius: 3,
-                blurRadius: 5,
-                offset: const Offset(0, 1),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: GestureDetector(
-                  onTap: () {
-                    appState.updateDone();
-                  },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    alignment: Alignment.center,
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: appState.done ? orangeColor : Colors.white,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                          color: appState.done ? Colors.white : Colors.grey,
-                          width: 1.5),
-                    ),
-                    child: Icon(
-                      Icons.done,
-                      color: appState.done ? Colors.white : Colors.grey,
-                    ),
-                  ),
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    todo,
-                    style: GoogleFonts.ubuntu(
-                      color: blackColor,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 16.0,
-                    ),
-                  ),
-                  if (notifi)
-                    Text(
-                      timeAlarm,
-                      style: GoogleFonts.ubuntu(
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14.0,
-                      ),
-                    ),
-                ],
-              ),
-              const Spacer(),
-              if (mark)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Icon(Icons.circle, size: 15.0, color: selectColor),
-                ),
-              if (remind)
-                const Padding(
-                    padding: EdgeInsets.only(left: 4.0, right: 16.0),
-                    child: Icon(Icons.notifications, color: Colors.grey)),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   Widget sliderPanel() {
