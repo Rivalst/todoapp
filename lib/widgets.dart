@@ -195,7 +195,7 @@ class _ToDoContainerState extends State<ToDoContainer> {
                 ),
               if (widget.remind && widget.done != true)
                 Padding(
-                    padding: const EdgeInsets.only(left: 4.0, right: 16.0),
+                    padding: const EdgeInsets.only(right: 8.0),
                     child: IconButton(
                         onPressed: () {
                           final snackBar = SnackBar(
