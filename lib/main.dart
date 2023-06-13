@@ -3,13 +3,11 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'page.dart';
 
 void main() async {
   runApp(const MyApp());
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -20,8 +18,7 @@ class MyApp extends StatelessWidget {
     const greyColor = Color(0xFFB4B4C6);
 
     return ChangeNotifierProvider(
-      create: (context) => AppStateChange()
-        ..openDatabase(),
+      create: (context) => AppStateChange()..openDatabase(),
       child: MaterialApp(
         title: 'Flutter Demo',
         debugShowCheckedModeBanner: false,
@@ -46,14 +43,14 @@ class DatabaseHelper {
 
   Future<void> open() async {
     final databasePath = await getDatabasesPath();
-    final path = join(databasePath, 'todo2.db');
+    final path = join(databasePath, 'todo3.db');
 
     _database = await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) {
         return db.execute('''
-          CREATE TABLE todo2(
+          CREATE TABLE todo3(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT,
             mark INTEGER,
@@ -61,6 +58,7 @@ class DatabaseHelper {
             remind INTEGER,
             time INTEGER,
             timeClock TEXT,
+            stringRemind TEXT,
             done INTEGER
           )
         ''');
@@ -69,36 +67,38 @@ class DatabaseHelper {
   }
 
   Future<List<Map<String, dynamic>>> getTodoList() async {
-    return _database.query('todo2');
+    return _database.query('todo3');
   }
 
   Future<void> insertTodoItem(Map<String, dynamic> item) async {
-    await _database.insert('todo2', item);
+    await _database.insert('todo3', item);
   }
 
   Future<void> deleteTodoItem(int id) async {
-    await _database.delete('todo2', where: 'id = ?', whereArgs: [id]);
+    await _database.delete('todo3', where: 'id = ?', whereArgs: [id]);
   }
 
   Future<void> deleteTodoItemByName(String name) async {
     await _database.delete(
-      'todo2',
+      'todo3',
       where: 'name = ?',
       whereArgs: [name],
     );
   }
 
-  Future<void>updateToDo(String name, int value) async {
+  Future<void> updateTodoItem(Map<String, dynamic> item) async {
     await _database.update(
-      'todo2',
-      {'done': value}, // Update 'done' value in the database (1 represents true)
+      'todo3',
+      item,
       where: 'name = ?',
-      whereArgs: [name],
+      whereArgs: [item['name']],
     );
   }
 
-
-
+  Future<String> getTodoListAsJson() async {
+    final todoList = await _database.query('todo3');
+    return jsonEncode(todoList);
+  }
 }
 
 class AppStateChange extends ChangeNotifier {
@@ -132,7 +132,8 @@ class AppStateChange extends ChangeNotifier {
   }
 
   Future<void> loadTodoList() async {
-    final List<Map<String, dynamic>> todoList = await _databaseHelper.getTodoList();
+    final List<Map<String, dynamic>> todoList =
+        await _databaseHelper.getTodoList();
     _toDo.clear();
     _toDo.addAll(todoList);
     notifyListeners();
@@ -148,10 +149,6 @@ class AppStateChange extends ChangeNotifier {
     await loadTodoList();
   }
 
-  Future<void> updateDoneItem(String name, int value) async {
-    await _databaseHelper.updateToDo(name, value);
-    await loadTodoList();
-  }
 
   void updateNameToDo(String value) {
     _nameToDo = value;
@@ -190,6 +187,7 @@ class AppStateChange extends ChangeNotifier {
             ? _selectedOptionPriority
             : safeColor,
         'remind': _selectedOptionRemind.isNotEmpty ? true : false,
+        'stringRemind': _selectedOptionRemind,
         'time': timeSet,
         'timeClock': _timeClock,
         'done': 0,
@@ -208,6 +206,24 @@ class AppStateChange extends ChangeNotifier {
     _toDo.removeWhere((item) => item['name'] == value);
     await _databaseHelper.deleteTodoItemByName(value);
     notifyListeners();
+  }
+
+  void updateDoneToDo(String value) async {
+    var itemIndex = _toDo.indexWhere((item) => item['name'] == value);
+    if (itemIndex != -1) {
+      var item = _toDo[itemIndex].cast<String, dynamic>();
+      var updatedItem = {...item};
+
+      updatedItem['done'] = updatedItem['done'] == 0 ? 1 : 0;
+
+      await _databaseHelper.deleteTodoItemByName(value);
+      saveTodoItem(updatedItem);
+    }
+  }
+
+  showJsonData() async {
+    final todoListJson = await _databaseHelper.getTodoListAsJson();
+    return todoListJson;
   }
 
   Map toDoItem(int index) {

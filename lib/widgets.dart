@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 class ToDoContainer extends StatefulWidget {
   final String todo;
   final String timeAlarm;
+  final String stringRemind;
   final bool notifi;
   final bool mark;
   final bool remind;
@@ -17,6 +18,7 @@ class ToDoContainer extends StatefulWidget {
     Key? key,
     required this.todo,
     this.timeAlarm = '',
+    this.stringRemind = '',
     this.notifi = false,
     this.mark = false,
     this.remind = false,
@@ -41,6 +43,11 @@ class _ToDoContainerState extends State<ToDoContainer> {
   static const Color blackColor = Color(0xFF474747);
 
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     var colorsMap = {
       'green': greenColor,
@@ -49,6 +56,7 @@ class _ToDoContainerState extends State<ToDoContainer> {
     };
 
     Color selectColor = colorsMap[widget.selectMark]!;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       child: Dismissible(
@@ -93,16 +101,24 @@ class _ToDoContainerState extends State<ToDoContainer> {
           ),
         ),
         direction: DismissDirection.endToStart,
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
           width: 360,
-          height: 70,
+          height: widget.done ? 40 : 70,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(6.0),
-            border: Border.all(color: Colors.grey.withOpacity(0.3), width: 1.0),
+            border: Border.all(
+                color: widget.done
+                    ? orangeColor.withOpacity(0.3)
+                    : Colors.grey.withOpacity(0.3),
+                width: 1.0),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.2),
+                color: widget.done
+                    ? orangeColorOpacity.withOpacity(0.2)
+                    : Colors.grey.withOpacity(0.2),
                 spreadRadius: 3,
                 blurRadius: 5,
                 offset: const Offset(0, 1),
@@ -112,15 +128,18 @@ class _ToDoContainerState extends State<ToDoContainer> {
           child: Row(
             children: [
               Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 5.0),
                 child: GestureDetector(
                   onTap: () {
                     setState(() {
-                      widget.done = !widget.done; // Toggle the 'done' value in the widget state
+                      widget.done = !widget
+                          .done; // Toggle the 'done' value in the widget state
                     });
+                    widget.appState.updateDoneToDo(widget.todo);
                   },
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
+                    duration: const Duration(milliseconds: 500),
                     curve: Curves.easeInOut,
                     alignment: Alignment.center,
                     width: 40,
@@ -146,32 +165,58 @@ class _ToDoContainerState extends State<ToDoContainer> {
                   Text(
                     widget.todo,
                     style: GoogleFonts.ubuntu(
-                      color: blackColor,
+                      color: widget.done ? greyColor : blackColor,
                       fontWeight: FontWeight.w500,
                       fontSize: 16.0,
                     ),
                   ),
                   if (widget.notifi)
-                    Text(
-                      widget.timeAlarm,
-                      style: GoogleFonts.ubuntu(
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14.0,
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.easeInOut,
+                      width: widget.done ? 0 : 100,
+                      height: widget.done ? 0 : 20,
+                      child: Text(
+                        widget.timeAlarm,
+                        style: GoogleFonts.ubuntu(
+                          color: greyColor,
+                          fontWeight: FontWeight.w500,
+                          // fontSize: widget.done ? 5.0 : 14.0,
+                        ),
                       ),
                     ),
                 ],
               ),
               const Spacer(),
-              if (widget.mark)
+              if (widget.mark && widget.done != true)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: Icon(Icons.circle, size: 15.0, color: selectColor),
                 ),
-              if (widget.remind)
-                const Padding(
-                    padding: EdgeInsets.only(left: 4.0, right: 16.0),
-                    child: Icon(Icons.notifications, color: Colors.grey)),
+              if (widget.remind && widget.done != true)
+                Padding(
+                    padding: const EdgeInsets.only(left: 4.0, right: 16.0),
+                    child: IconButton(
+                        onPressed: () {
+                          final snackBar = SnackBar(
+                            content: Text(
+                                widget.stringRemind,
+                              style: const TextStyle(
+                                color: blueColorOpacity
+                              ),
+                            ),
+                            action: SnackBarAction(
+                              label: 'Close',
+                              textColor: blueColorOpacity,
+                              onPressed: () {
+                                // Some code to undo the change.
+                              },
+                            ),
+                          );
+                          ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                        },
+                        icon: const Icon(Icons.notifications),
+                        color: Colors.grey)),
             ],
           ),
         ),
