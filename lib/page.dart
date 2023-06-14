@@ -67,7 +67,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         '${_selectedTime.hourOfPeriod}:${_selectedTime.minute.toString().padLeft(2, '0')} ${_selectedTime.period.index == 0 ? 'AM' : 'PM'}';
   }
 
-
   TextStyle fontsStyleSmall() {
     return GoogleFonts.ubuntu(color: blackColor, fontWeight: FontWeight.w500);
   }
@@ -153,10 +152,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                     CalendarFormat.month: 'Week',
                     CalendarFormat.twoWeeks: 'Month'
                   },
-
                   formatAnimationDuration: const Duration(milliseconds: 500),
                   formatAnimationCurve: Curves.easeInOut,
-
                   focusedDay: appState.selectedDate,
                   selectedDayPredicate: (day) {
                     return isSameDay(appState.selectedDate, day);
@@ -167,18 +164,13 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                   startingDayOfWeek: StartingDayOfWeek.monday,
                   calendarFormat: _calendarFormat,
                   calendarStyle: CalendarStyle(
-                    selectedDecoration: const BoxDecoration(
-                      color: blueColor,
-                      shape: BoxShape.circle
-                    ),
-                   defaultTextStyle: fontsStyleSmall(),
-                    weekendTextStyle: fontsStyleSmall(),
-                    todayDecoration: BoxDecoration(
-                      color: blueColor.withOpacity(0.6),
-                      shape: BoxShape.circle
-                    )
-                  ),
-
+                      selectedDecoration: const BoxDecoration(
+                          color: blueColor, shape: BoxShape.circle),
+                      defaultTextStyle: fontsStyleSmall(),
+                      weekendTextStyle: fontsStyleSmall(),
+                      todayDecoration: BoxDecoration(
+                          color: blueColor.withOpacity(0.6),
+                          shape: BoxShape.circle)),
                   onFormatChanged: (format) {
                     if (_calendarFormat != format) {
                       setState(() {
@@ -263,11 +255,15 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
               padding: const EdgeInsets.fromLTRB(0.0, 4.0, 0.0, 60.0),
               child: selectedDayList.isEmpty
                   ? Center(
-                      child: Text(
-                        'There not todo yet.',
-                        style: fontsStyleSmall(),
+                      child: Column(
+                        children: [
+                          Image.asset('assets/splash_sc.jpg'),
+                          Text(
+                            'There not todo yet.',
+                            style: fontsStyleSmall(),
+                          ),
+                        ],
                       ),
-
                     )
                   : ListView.builder(
                       itemCount: selectedDayList.length,
