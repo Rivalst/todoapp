@@ -68,8 +68,12 @@ class TodoManager {
 
 
 class DatabaseManager {
+// There a new update Singleton
+  static final DatabaseManager _instance = DatabaseManager._internal();
+  factory DatabaseManager() => _instance;
+  DatabaseManager._internal();
   late Database _database;
-
+  
   Future<void> open() async {
     final databasePath = await getDatabasesPath();
     final path = join(databasePath, 'todo4.db');
