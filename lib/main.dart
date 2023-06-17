@@ -39,6 +39,10 @@ class MyApp extends StatelessWidget {
 }
 
 class TodoManager {
+  static final TodoManager _instance = TodoManager._internal();
+  factory TodoManager() => _instance;
+  TodoManager._internal();
+  
   List<Map<String, dynamic>> _todoList = [];
 
   List<Map<String, dynamic>> get todoList => _todoList;
