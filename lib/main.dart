@@ -3,7 +3,6 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'page.dart';
 
 void main() async {
@@ -15,7 +14,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const colorBlue = Color(0xFF697DFC);
+    const colorBlue = Color(0xFF8280FF);
     const greyColor = Color(0xFFB4B4C6);
 
     return ChangeNotifierProvider(
@@ -43,7 +42,7 @@ class TodoManager {
   static final TodoManager _instance = TodoManager._internal();
   factory TodoManager() => _instance;
   TodoManager._internal();
-
+  
   List<Map<String, dynamic>> _todoList = [];
 
   List<Map<String, dynamic>> get todoList => _todoList;
@@ -73,12 +72,12 @@ class TodoManager {
 
 
 class DatabaseManager {
+// There a new update Singleton
   static final DatabaseManager _instance = DatabaseManager._internal();
   factory DatabaseManager() => _instance;
   DatabaseManager._internal();
-
   late Database _database;
-
+  
   Future<void> open() async {
     final databasePath = await getDatabasesPath();
     final path = join(databasePath, 'todo4.db');
