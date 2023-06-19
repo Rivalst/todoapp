@@ -38,7 +38,7 @@ class _ToDoContainerState extends State<ToDoContainer> {
   static const Color orangeColorOpacity = Color(0xFFFFF4E5);
   static const Color orangeColor = Color(0xFFFFCA83);
   static const Color blueColorOpacity = Color(0xFFE8E7FF);
-  static const Color blueColor = Color(0xFF8280FF);
+  static const Color blueColor = Color(0xFF697DFC);
   static const Color greyColor = Color(0xFFB4B4C6);
   static const Color blackColor = Color(0xFF474747);
 

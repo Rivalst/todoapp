@@ -32,7 +32,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   static const Color orangeColorOpacity = Color(0xFFFFF4E5);
   static const Color orangeColor = Color(0xFFFFCA83);
   static const Color blueColorOpacity = Color(0xFFE8E7FF);
-  static const Color blueColor = Color(0xFF8280FF);
+  static const Color blueColor = Color(0xFF697DFC);
   static const Color greyColor = Color(0xFFB4B4C6);
   static const Color blackColor = Color(0xFF474747);
 
@@ -64,7 +64,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   void updateTimeClock() {
     timeClock =
-        '${_selectedTime.hourOfPeriod}:${_selectedTime.minute.toString().padLeft(2, '0')} ${_selectedTime.period.index == 0 ? 'AM' : 'PM'}';
+    '${_selectedTime.hourOfPeriod}:${_selectedTime.minute.toString().padLeft(
+        2, '0')} ${_selectedTime.period.index == 0 ? 'AM' : 'PM'}';
   }
 
   TextStyle fontsStyleSmall() {
@@ -92,6 +93,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     var selectedDate = appState.selectedDate;
     DateFormat formatter = DateFormat('EEEE, MMMM d');
     String date = formatter.format(selectedDate);
+
 
     final today = DateTime.now();
     final firstDay = DateTime(today.year, today.month - 3, today.day);
@@ -135,8 +137,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                               fontSize: 14.0)),
                       const Padding(
                         padding: EdgeInsets.only(left: 5.0),
-                        child: Icon(Icons.calendar_month,
-                            color: Color(0xFF8390FF)),
+                        child: Icon(Icons.calendar_month, color: blueColor),
                       )
                     ],
                   ),
@@ -152,6 +153,35 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                     CalendarFormat.month: 'Week',
                     CalendarFormat.twoWeeks: 'Month'
                   },
+                  calendarBuilders: CalendarBuilders(
+                    defaultBuilder: (context, date, events) {
+                      var reversedItems = appState.toDoList.reversed.toList();
+                      bool hasItems = reversedItems.any((item) =>
+                          isSameDay(DateTime.parse(item['date']), date));
+                      return Stack(
+                        children: [
+                          Container(
+                            alignment: Alignment.bottomCenter,
+                            padding: const EdgeInsets.only(bottom: 5.0),
+                            child: Container(
+                              width: 5,
+                              height: 5,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: hasItems ? orangeColor : Colors
+                                    .transparent,
+                              ),
+                            ),
+                          ),
+                          Center(
+                            child: Text(
+                              '${date.day}',
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                   formatAnimationDuration: const Duration(milliseconds: 500),
                   formatAnimationCurve: Curves.easeInOut,
                   focusedDay: appState.selectedDate,
@@ -194,28 +224,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     );
   }
 
-  Widget data(String name, String number) {
-    //Widgets for view day
-    return Column(
-      children: [
-        Text(name,
-            style: GoogleFonts.ubuntu(
-              color: Colors.grey,
-              fontWeight: FontWeight.w600,
-              fontSize: 16.0,
-            )),
-        const SizedBox(
-          height: 3.0,
-        ),
-        Text(
-          number,
-          style: GoogleFonts.ubuntu(
-              color: blackColor, fontWeight: FontWeight.w600, fontSize: 20.0),
-        )
-      ],
-    );
-  }
-
   Widget toDoListWidgets() {
     // Widget for view and CRUD To Do
     var appState = context.watch<AppStateChange>();
@@ -233,77 +241,83 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
     return Expanded(
         child: Padding(
-      padding: const EdgeInsets.only(top: 4.0),
-      child: Stack(
-        children: [
-          Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius:
+          padding: const EdgeInsets.only(top: 4.0),
+          child: Stack(
+            children: [
+              Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(10.0)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.3),
-                    spreadRadius: 2,
-                    blurRadius: 5,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              )),
-          Padding(
-              padding: const EdgeInsets.fromLTRB(0.0, 4.0, 0.0, 60.0),
-              child: selectedDayList.isEmpty
-                  ? Center(
-                      child: Column(
-                        children: [
-                          Image.asset('assets/splash_sc.jpg'),
-                          Text(
-                            'There not todo yet.',
-                            style: fontsStyleSmall(),
-                          ),
-                        ],
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.3),
+                        spreadRadius: 2,
+                        blurRadius: 5,
+                        offset: const Offset(0, 3),
                       ),
-                    )
-                  : ListView.builder(
-                      itemCount: selectedDayList.length,
-                      itemBuilder: (context, index) {
-                        var item = selectedDayList[index];
-                        String name = item['name'];
-                        String selectColor = item['colorMark'];
-                        String timeClock = item['timeClock'];
-                        String stringRemind = item['stringRemind'];
-                        bool mark = item['mark'] == 0 ? false : true;
-                        bool remind = item['remind'] == 0 ? false : true;
-                        bool notify = item['time'] == 0 ? false : true;
-                        bool done = item['done'] == 0 ? false : true;
-                        return ToDoContainer(
-                          appState,
-                          done: done,
-                          todo: name,
-                          mark: mark,
-                          selectMark: selectColor,
-                          stringRemind: stringRemind,
-                          remind: remind,
-                          notifi: notify,
-                          timeAlarm: timeClock,
-                          // done: done,
-                        );
-                      },
-                    )),
-          Positioned(bottom: 10, right: 0, left: 0, child: sliderPanel())
-        ],
-      ),
-    ));
+                    ],
+                  )),
+              Padding(
+                  padding: const EdgeInsets.fromLTRB(0.0, 4.0, 0.0, 60.0),
+                  child: selectedDayList.isEmpty
+                      ? ListView(
+                    children: [
+                      Center(child: Image.asset('assets/todoempty.jpg')),
+                      Center(
+                        child: Text(
+                          'There not todo yet.',
+                          style: fontsStyleSmall(),
+                        ),
+                      ),
+                    ],
+                  )
+                      : ListView.builder(
+                    itemCount: selectedDayList.length,
+                    itemBuilder: (context, index) {
+                      var item = selectedDayList[index];
+                      String name = item['name'];
+                      String selectColor = item['colorMark'];
+                      String timeClock = item['timeClock'];
+                      String stringRemind = item['stringRemind'];
+                      bool mark = item['mark'] == 0 ? false : true;
+                      bool remind = item['remind'] == 0 ? false : true;
+                      bool notify = item['time'] == 0 ? false : true;
+                      bool done = item['done'] == 0 ? false : true;
+                      return ToDoContainer(
+                        appState,
+                        done: done,
+                        todo: name,
+                        mark: mark,
+                        selectMark: selectColor,
+                        stringRemind: stringRemind,
+                        remind: remind,
+                        notifi: notify,
+                        timeAlarm: timeClock,
+                        // done: done,
+                      );
+                    },
+                  )),
+              Positioned(bottom: 10, right: 0, left: 0, child: sliderPanel())
+            ],
+          ),
+        ));
   }
 
   Widget sliderPanel() {
+    final PanelController _panelController = PanelController();
     // Widget for add To Do
     var appState = context.watch<AppStateChange>();
     return SlidingUpPanel(
         minHeight: 50,
+        maxHeight: MediaQuery
+            .of(context)
+            .size
+            .height * 0.65,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16.0)),
         color: Colors.white,
+        controller: _panelController,
         panel: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: Column(
@@ -337,65 +351,68 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
                               _debounceTimer =
                                   Timer(const Duration(milliseconds: 500), () {
-                                appState.updateNameToDo(value);
-                              });
+                                    appState.updateNameToDo(value);
+                                  });
                             },
                             maxLength: 25,
                             decoration: const InputDecoration(
                               labelText: 'What do you need to do?',
                               contentPadding:
-                                  EdgeInsets.symmetric(horizontal: 15.0),
+                              EdgeInsets.symmetric(horizontal: 15.0),
                               counterText: '',
                             ))),
                   )),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Column(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            const Icon(
-                              Icons.alarm,
-                              color: greyColor,
-                            ),
-                            const SizedBox(width: 10),
-                            Text(timeClock, style: fontsStyleSmall())
-                          ],
+                        const Icon(
+                          Icons.alarm,
+                          color: greyColor,
                         ),
-                        Switch(
-                            value: appState.timeSet,
-                            activeColor: Colors.green,
-                            onChanged: (bool value) {
-                              setState(() {
-                                appState.updateTimeSet(value);
-                                if (appState.timeSet == false) {
-                                  appState.updateSelectedOptionRemind('');
-                                }
-                              });
-                            })
+                        // Text(timeClock, style: fontsStyleSmall()),
+                        TextButton(
+                          onPressed: () {
+                            if (appState.timeSet) _show();
+                          },
+                          child: Text(
+                            timeClock,
+                            style: GoogleFonts.ubuntu(
+                                color:
+                                appState.timeSet ? blueColor : blackColor,
+                                fontSize: 14.0,
+                                fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        AnimatedOpacity(
+                          duration: const Duration(milliseconds: 500),
+                          curve: Curves.easeInOut,
+                          opacity: appState.timeSet ? 1.0 : 0.0,
+                          child: Text(
+                            '<- tap to change time',
+                            style: GoogleFonts.ubuntu(
+                                color: greyColor,
+                                fontSize: 14.0,
+                                fontWeight: FontWeight.w600),
+                          ),
+                        ),
                       ],
                     ),
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 500),
-                      curve: Curves.easeInOut,
-                      height: appState.timeSet ? 50 : 0,
-                      child: TextButton(
-                        onPressed: () {
-                          _show();
-                        },
-                        child: Text(
-                          'Select Time',
-                          style: GoogleFonts.ubuntu(
-                              color: blueColor,
-                              fontSize: 15.0,
-                              fontWeight: FontWeight.w500),
-                        ),
-                      ),
-                    )
+                    Switch(
+                        value: appState.timeSet,
+                        activeColor: Colors.green,
+                        onChanged: (bool value) {
+                          setState(() {
+                            appState.updateTimeSet(value);
+                            if (appState.timeSet == false) {
+                              appState.updateSelectedOptionRemind('');
+                            }
+                          });
+                        })
                   ],
                 ),
               ),
@@ -405,7 +422,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
               ),
               Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
                 child: Column(
                   children: [
                     Padding(
@@ -441,7 +458,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
               ),
               Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
                 child: Row(
                   children: [
                     const Icon(
@@ -489,7 +506,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                       },
                       style: ButtonStyle(
                           backgroundColor:
-                              MaterialStateProperty.all<Color>(blueColor),
+                          MaterialStateProperty.all<Color>(blueColor),
                           overlayColor: MaterialStateProperty.all<Color>(
                               blueColorOpacity)),
                       child: Text('SAVE',
@@ -521,12 +538,12 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           appState.timeSet
               ? appState.updateSelectedOptionRemind(option)
               : showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return const AlertDialog(
-                      content: Text('For set remind you ned to on time'),
-                    );
-                  });
+              context: context,
+              builder: (BuildContext context) {
+                return const AlertDialog(
+                  content: Text('For set remind you ned to on time'),
+                );
+              });
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 400),
@@ -535,7 +552,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
               color: color, borderRadius: BorderRadius.circular(16.0)),
           child: Padding(
             padding:
-                const EdgeInsets.symmetric(horizontal: 10.0, vertical: 3.0),
+            const EdgeInsets.symmetric(horizontal: 10.0, vertical: 3.0),
             child: Text(
               option,
               style: TextStyle(color: colorText, fontSize: 12.0),
@@ -565,7 +582,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
     Color selectColor = isSelected ? colorsMap[option]! : Colors.grey;
     Color selectColorOpacity =
-        isSelected ? colorsMapOpacity[option]! : Colors.white;
+    isSelected ? colorsMapOpacity[option]! : Colors.white;
 
     return InkWell(
       onTap: () {
