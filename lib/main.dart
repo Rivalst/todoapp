@@ -3,11 +3,18 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:todoapp/notifi_service.dart';
 import 'page.dart';
+import 'package:timezone/data/latest.dart' as tz;
+
 
 void main() async {
+  tz.initializeTimeZones();
+  WidgetsFlutterBinding.ensureInitialized();
+  await LocalNotificationService().initializeNotification();
   runApp(const MyApp());
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

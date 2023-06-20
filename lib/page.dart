@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:todoapp/notifi_service.dart';
 import 'main.dart';
 import 'dart:async';
 import 'widgets.dart';
@@ -36,6 +37,21 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   static const Color greyColor = Color(0xFFB4B4C6);
   static const Color blackColor = Color(0xFF474747);
 
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+    updateTimeClock();
+  }
+
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    _clockTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
   Future<void> _show() async {
     final TimeOfDay? result = await showTimePicker(
         context: context,
@@ -64,27 +80,11 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   void updateTimeClock() {
     timeClock =
-    '${_selectedTime.hourOfPeriod}:${_selectedTime.minute.toString().padLeft(
-        2, '0')} ${_selectedTime.period.index == 0 ? 'AM' : 'PM'}';
+        '${_selectedTime.hourOfPeriod}:${_selectedTime.minute.toString().padLeft(2, '0')} ${_selectedTime.period.index == 0 ? 'AM' : 'PM'}';
   }
 
   TextStyle fontsStyleSmall() {
     return GoogleFonts.ubuntu(color: blackColor, fontWeight: FontWeight.w500);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController();
-    updateTimeClock();
-  }
-
-  @override
-  void dispose() {
-    _debounceTimer?.cancel();
-    _clockTimer?.cancel();
-    _controller.dispose();
-    super.dispose();
   }
 
   Widget dateBar() {
@@ -93,7 +93,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     var selectedDate = appState.selectedDate;
     DateFormat formatter = DateFormat('EEEE, MMMM d');
     String date = formatter.format(selectedDate);
-
 
     final today = DateTime.now();
     final firstDay = DateTime(today.year, today.month - 3, today.day);
@@ -168,8 +167,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                               height: 5,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: hasItems ? orangeColor : Colors
-                                    .transparent,
+                                color:
+                                    hasItems ? orangeColor : Colors.transparent,
                               ),
                             ),
                           ),
@@ -241,68 +240,68 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
     return Expanded(
         child: Padding(
-          padding: const EdgeInsets.only(top: 4.0),
-          child: Stack(
-            children: [
-              Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius:
+      padding: const EdgeInsets.only(top: 4.0),
+      child: Stack(
+        children: [
+          Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(10.0)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.3),
-                        spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  )),
-              Padding(
-                  padding: const EdgeInsets.fromLTRB(0.0, 4.0, 0.0, 60.0),
-                  child: selectedDayList.isEmpty
-                      ? ListView(
-                    children: [
-                      Center(child: Image.asset('assets/todoempty.jpg')),
-                      Center(
-                        child: Text(
-                          'There not todo yet.',
-                          style: fontsStyleSmall(),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.3),
+                    spreadRadius: 2,
+                    blurRadius: 5,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              )),
+          Padding(
+              padding: const EdgeInsets.fromLTRB(0.0, 4.0, 0.0, 60.0),
+              child: selectedDayList.isEmpty
+                  ? ListView(
+                      children: [
+                        Center(child: Image.asset('assets/todoempty.jpg')),
+                        Center(
+                          child: Text(
+                            'There not todo yet.',
+                            style: fontsStyleSmall(),
+                          ),
                         ),
-                      ),
-                    ],
-                  )
-                      : ListView.builder(
-                    itemCount: selectedDayList.length,
-                    itemBuilder: (context, index) {
-                      var item = selectedDayList[index];
-                      String name = item['name'];
-                      String selectColor = item['colorMark'];
-                      String timeClock = item['timeClock'];
-                      String stringRemind = item['stringRemind'];
-                      bool mark = item['mark'] == 0 ? false : true;
-                      bool remind = item['remind'] == 0 ? false : true;
-                      bool notify = item['time'] == 0 ? false : true;
-                      bool done = item['done'] == 0 ? false : true;
-                      return ToDoContainer(
-                        appState,
-                        done: done,
-                        todo: name,
-                        mark: mark,
-                        selectMark: selectColor,
-                        stringRemind: stringRemind,
-                        remind: remind,
-                        notifi: notify,
-                        timeAlarm: timeClock,
-                        // done: done,
-                      );
-                    },
-                  )),
-              Positioned(bottom: 10, right: 0, left: 0, child: sliderPanel())
-            ],
-          ),
-        ));
+                      ],
+                    )
+                  : ListView.builder(
+                      itemCount: selectedDayList.length,
+                      itemBuilder: (context, index) {
+                        var item = selectedDayList[index];
+                        String name = item['name'];
+                        String selectColor = item['colorMark'];
+                        String timeClock = item['timeClock'];
+                        String stringRemind = item['stringRemind'];
+                        bool mark = item['mark'] == 0 ? false : true;
+                        bool remind = item['remind'] == 0 ? false : true;
+                        bool notify = item['time'] == 0 ? false : true;
+                        bool done = item['done'] == 0 ? false : true;
+                        return ToDoContainer(
+                          appState,
+                          done: done,
+                          todo: name,
+                          mark: mark,
+                          selectMark: selectColor,
+                          stringRemind: stringRemind,
+                          remind: remind,
+                          notifi: notify,
+                          timeAlarm: timeClock,
+                          // done: done,
+                        );
+                      },
+                    )),
+          Positioned(bottom: 10, right: 0, left: 0, child: sliderPanel())
+        ],
+      ),
+    ));
   }
 
   Widget sliderPanel() {
@@ -311,10 +310,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     var appState = context.watch<AppStateChange>();
     return SlidingUpPanel(
         minHeight: 50,
-        maxHeight: MediaQuery
-            .of(context)
-            .size
-            .height * 0.65,
+        maxHeight: MediaQuery.of(context).size.height * 0.65,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16.0)),
         color: Colors.white,
         controller: _panelController,
@@ -351,14 +347,14 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
                               _debounceTimer =
                                   Timer(const Duration(milliseconds: 500), () {
-                                    appState.updateNameToDo(value);
-                                  });
+                                appState.updateNameToDo(value);
+                              });
                             },
                             maxLength: 25,
                             decoration: const InputDecoration(
                               labelText: 'What do you need to do?',
                               contentPadding:
-                              EdgeInsets.symmetric(horizontal: 15.0),
+                                  EdgeInsets.symmetric(horizontal: 15.0),
                               counterText: '',
                             ))),
                   )),
@@ -383,7 +379,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                             timeClock,
                             style: GoogleFonts.ubuntu(
                                 color:
-                                appState.timeSet ? blueColor : blackColor,
+                                    appState.timeSet ? blueColor : blackColor,
                                 fontSize: 14.0,
                                 fontWeight: FontWeight.w600),
                           ),
@@ -422,7 +418,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
               ),
               Padding(
                 padding:
-                const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
                 child: Column(
                   children: [
                     Padding(
@@ -458,7 +454,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
               ),
               Padding(
                 padding:
-                const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
                 child: Row(
                   children: [
                     const Icon(
@@ -506,13 +502,22 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                       },
                       style: ButtonStyle(
                           backgroundColor:
-                          MaterialStateProperty.all<Color>(blueColor),
+                              MaterialStateProperty.all<Color>(blueColor),
                           overlayColor: MaterialStateProperty.all<Color>(
                               blueColorOpacity)),
                       child: Text('SAVE',
                           style: GoogleFonts.ubuntu(color: Colors.white))),
                 ),
-              )
+              ),
+              // Center(
+              //   child: ElevatedButton(
+              //     onPressed: () {
+              //       LocalNotificationService().showNotification(
+              //           title: 'Sample title', body: 'It works!');
+              //     },
+              //     child: Text('Test'),
+              //   ),
+              // )
             ],
           ),
         ),
@@ -538,12 +543,14 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           appState.timeSet
               ? appState.updateSelectedOptionRemind(option)
               : showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return const AlertDialog(
-                  content: Text('For set remind you ned to on time'),
-                );
-              });
+                  context: context,
+                  builder: (BuildContext context) {
+                    return const AlertDialog(
+                      content: Text('For set remind you ned to on time'),
+                    );
+                  });
+          LocalNotificationService().showNotify(
+              option, appState.nameToDo, appState.selectedDate, _selectedTime);
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 400),
@@ -552,7 +559,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
               color: color, borderRadius: BorderRadius.circular(16.0)),
           child: Padding(
             padding:
-            const EdgeInsets.symmetric(horizontal: 10.0, vertical: 3.0),
+                const EdgeInsets.symmetric(horizontal: 10.0, vertical: 3.0),
             child: Text(
               option,
               style: TextStyle(color: colorText, fontSize: 12.0),
@@ -582,7 +589,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
     Color selectColor = isSelected ? colorsMap[option]! : Colors.grey;
     Color selectColorOpacity =
-    isSelected ? colorsMapOpacity[option]! : Colors.white;
+        isSelected ? colorsMapOpacity[option]! : Colors.white;
 
     return InkWell(
       onTap: () {
