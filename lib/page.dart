@@ -8,6 +8,8 @@ import 'dart:async';
 import 'widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
@@ -26,6 +28,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   CalendarFormat _calendarFormat = CalendarFormat.week;
   double _heightCalendar = 200;
 
+
   static const Color greenColor = Color(0xFF4AD911);
   static const Color greenColorOpacity = Color(0xFFDAF7E8);
   static const Color redColor = Color(0xFFFF7285);
@@ -42,6 +45,47 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     super.initState();
     _controller = TextEditingController();
     updateTimeClock();
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      RemoteNotification? notification = message.notification;
+      AndroidNotification? android = message.notification?.android;
+      if (notification != null && android != null) {
+        notify.flutterLocalNotificationsPlugin.show(
+            notification.hashCode,
+            notification.title,
+            notification.body,
+            NotificationDetails(
+              android: AndroidNotificationDetails(
+                channel.id,
+                channel.name,
+                channelDescription: channel.description,
+                playSound: true,
+                color: blueColor,
+                icon: '@drawable/icon_todo',
+              ),
+            ));
+      }
+    });
+
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      print('A new onMessageOpenedApp event was published!');
+      RemoteNotification? notification = message.notification;
+      AndroidNotification? android = message.notification?.android;
+      if (notification != null && android != null) {
+        showDialog(
+            context: context,
+            builder: (_) {
+              return AlertDialog(
+                title: Text(notification.title!),
+                content: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [Text(notification.body!)],
+                  ),
+                ),
+              );
+            });
+      }
+    });
   }
 
   @override
@@ -482,6 +526,11 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                   child: ElevatedButton(
                       onPressed: () {
                         if (appState.nameToDo != '') {
+                          LocalNotificationService().showNotify(
+                              appState.selectedOptionRemind,
+                              appState.nameToDo,
+                              appState.selectedDate,
+                              _selectedTime);
                           appState.updateTimeClock(timeClock);
                           appState.createListToDo();
                           _controller.clear();
@@ -509,15 +558,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                           style: GoogleFonts.ubuntu(color: Colors.white))),
                 ),
               ),
-              // Center(
-              //   child: ElevatedButton(
-              //     onPressed: () {
-              //       LocalNotificationService().showNotification(
-              //           title: 'Sample title', body: 'It works!');
-              //     },
-              //     child: Text('Test'),
-              //   ),
-              // )
             ],
           ),
         ),
@@ -549,8 +589,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                       content: Text('For set remind you ned to on time'),
                     );
                   });
-          LocalNotificationService().showNotify(
-              option, appState.nameToDo, appState.selectedDate, _selectedTime);
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 400),

@@ -1,13 +1,19 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:timezone/timezone.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:http/http.dart' as http;
 
 class LocalNotificationService {
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
+
   static int notificationIdCounter = 0;
-  
+  DateTime scheduleDateTime = DateTime.now();
 
   Future<void> initializeNotification() async {
     const initializationSettingsAndroid =
@@ -38,7 +44,6 @@ class LocalNotificationService {
     Duration _timeInterval;
     String _time;
 
-
     if (remindOption == 'In 24 hours') {
       _timeInterval = const Duration(hours: 24);
       _time = 'will be in 24 hours';
@@ -49,8 +54,8 @@ class LocalNotificationService {
       _timeInterval = const Duration(minutes: 15);
       _time = 'will be in 15 minutes';
     }
-    //
-    final scheduleDateTime = DateTime(
+
+    scheduleDateTime = DateTime(
       selectedDay.year,
       selectedDay.month,
       selectedDay.day,
@@ -68,22 +73,84 @@ class LocalNotificationService {
 
     const notificationDetails =
         NotificationDetails(android: androidPlatformChannelSpecifics);
-    
 
     await flutterLocalNotificationsPlugin.zonedSchedule(
       notificationIdCounter,
       'ToDo remind: $nameTodo',
       'Your ToDo $_time',
-      TZDateTime.from(scheduleDateTime, local),
+      tz.TZDateTime.from(scheduleDateTime, tz.local),
       notificationDetails,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
       payload: 'your_custom_data',
     );
-
     notificationIdCounter++;
+
+    print('show work');
+    try{
+      var token = await FirebaseMessaging.instance.getToken();
+      final body = jsonEncode(<String, dynamic>{
+        'priority': 'high',
+        'data': <String, dynamic>{
+          'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+          'status': 'done',
+          'body': 'nameToDo',
+          'title': 'Your ToDo time',
+        },
+        'notification': <String, dynamic>{
+          'title': 'Remind: $nameTodo',
+          'body': 'Your ToDo $_time',
+        },
+        'to': token
+      });
+      print('still work');
+
+      await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
+          headers: {
+            HttpHeaders.contentTypeHeader: 'application/json',
+            HttpHeaders.authorizationHeader:
+            'key=AAAAevwX-Js:APA91bFzJE_D6-Co-HnmVozA-GtOzZcu4ley4Uu9esYmxbb7H8Ay8LzN4Dyi1b7ErtrkN9AtMNUPUcPFj7ch_XyKS3A6IRCtfOGK358WIHgr_3Zm0r1YmPZcoSn3gAH6S7D049HY3ViA'
+          },
+          body: body
+      );
+      print('send push done');
+    } catch (e) {
+      print('error $e');
+    }
   }
 
-
+  // Future<void> showPushNotify() async {
+  //   print('show work');
+  //   try{
+  //     var token = await FirebaseMessaging.instance.getToken();
+  //     final body = jsonEncode(<String, dynamic>{
+  //       'priority': 'high',
+  //       'data': <String, dynamic>{
+  //         'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+  //         'status': 'done',
+  //         'body': 'nameToDo',
+  //         'title': 'Your ToDo time'
+  //       },
+  //       'notification': <String, dynamic>{
+  //         'title': 'nameToDo-to',
+  //         'body': 'Your ToDo time',
+  //       },
+  //       'to': token
+  //     });
+  //     print('still work');
+  //
+  //     await http.post(Uri.parse('https://fcm.googleapis.com/fcm/send'),
+  //         headers: {
+  //           HttpHeaders.contentTypeHeader: 'application/json',
+  //           HttpHeaders.authorizationHeader:
+  //           'key=AAAAevwX-Js:APA91bFzJE_D6-Co-HnmVozA-GtOzZcu4ley4Uu9esYmxbb7H8Ay8LzN4Dyi1b7ErtrkN9AtMNUPUcPFj7ch_XyKS3A6IRCtfOGK358WIHgr_3Zm0r1YmPZcoSn3gAH6S7D049HY3ViA'
+  //         },
+  //         body: body
+  //     );
+  //     print('send push done');
+  //   } catch (e) {
+  //     print('error $e');
+  //   }
+  // }
 }

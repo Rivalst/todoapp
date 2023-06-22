@@ -6,38 +6,73 @@ import 'package:provider/provider.dart';
 import 'package:todoapp/notifi_service.dart';
 import 'page.dart';
 import 'package:timezone/data/latest.dart' as tz;
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+const AndroidNotificationChannel channel = AndroidNotificationChannel(
+    'high_importance_channel', // id
+    'High Importance Notifications', // title
+    description:
+    'This channel is used for important notifications.', // description
+    importance: Importance.high,
+    playSound: true);
+
+final notify = LocalNotificationService();
+
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  print('A bg message just showed up :  ${message.messageId}');
+}
 
 
-void main() async {
+Future<void> main() async {
   tz.initializeTimeZones();
   WidgetsFlutterBinding.ensureInitialized();
-  await LocalNotificationService().initializeNotification();
+  await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  await notify.flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<
+      AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(channel);
+
+  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+
+  await notify.requestNotificationPermission();
+  await notify.initializeNotification();
   runApp(const MyApp());
 }
 
 
 class MyApp extends StatelessWidget {
+  final Color colorBlue = const Color(0xFF8280FF);
+  final Color greyColor = const Color(0xFFB4B4C6);
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const colorBlue = Color(0xFF8280FF);
-    const greyColor = Color(0xFFB4B4C6);
 
     return ChangeNotifierProvider(
-      create: (context) => AppStateChange()..openDatabase(),
+      create: (context) =>
+      AppStateChange()
+        ..openDatabase(),
       child: MaterialApp(
         title: 'Flutter Demo',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
             useMaterial3: true,
-            inputDecorationTheme: const InputDecorationTheme(
+            inputDecorationTheme: InputDecorationTheme(
                 enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(width: 1, color: greyColor),
-                    borderRadius: BorderRadius.all(Radius.circular(10.0))),
+                    borderRadius: const BorderRadius.all(Radius.circular(10.0))),
                 focusedBorder: OutlineInputBorder(
                     borderSide: BorderSide(width: 2, color: colorBlue),
-                    borderRadius: BorderRadius.all(Radius.circular(10.0))),
+                    borderRadius: const BorderRadius.all(Radius.circular(10.0))),
                 labelStyle: TextStyle(color: colorBlue))),
         home: const MyHomePage(),
       ),
@@ -47,9 +82,11 @@ class MyApp extends StatelessWidget {
 
 class TodoManager {
   static final TodoManager _instance = TodoManager._internal();
+
   factory TodoManager() => _instance;
+
   TodoManager._internal();
-  
+
   List<Map<String, dynamic>> _todoList = [];
 
   List<Map<String, dynamic>> get todoList => _todoList;
@@ -68,23 +105,27 @@ class TodoManager {
     _todoList[index] = updatedItem;
   }
 
-  void addAll(List<Map<String, dynamic>> todoList){
-    todoList.forEach((element) {_todoList.add(element);});
+  void addAll(List<Map<String, dynamic>> todoList) {
+    todoList.forEach((element) {
+      _todoList.add(element);
+    });
   }
 
-  void clear(){
+  void clear() {
     _todoList.clear();
   }
 }
 
-
 class DatabaseManager {
 // There a new update Singleton
   static final DatabaseManager _instance = DatabaseManager._internal();
+
   factory DatabaseManager() => _instance;
+
   DatabaseManager._internal();
+
   late Database _database;
-  
+
   Future<void> open() async {
     final databasePath = await getDatabasesPath();
     final path = join(databasePath, 'todo4.db');
@@ -173,14 +214,14 @@ class AppStateChange extends ChangeNotifier {
 
   List<Map<String, dynamic>> get toDoList => _todoManager.todoList;
 
-
   Future<void> openDatabase() async {
     await _databaseManager.open();
     await loadTodoList();
   }
 
   Future<void> loadTodoList() async {
-    final List<Map<String, dynamic>> todoList = await _databaseManager.getTodoList();
+    final List<Map<String, dynamic>> todoList =
+    await _databaseManager.getTodoList();
     _todoManager.clear();
     _todoManager.addAll(todoList);
     notifyListeners();
@@ -216,7 +257,7 @@ class AppStateChange extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateSelectedDate(DateTime date){
+  void updateSelectedDate(DateTime date) {
     _selectedDay = date;
     notifyListeners();
   }
@@ -233,7 +274,9 @@ class AppStateChange extends ChangeNotifier {
       final item = {
         'name': _nameToDo,
         'mark': _selectedOptionPriority.isNotEmpty ? true : false,
-        'colorMark': _selectedOptionPriority.isNotEmpty ? _selectedOptionPriority : safeColor,
+        'colorMark': _selectedOptionPriority.isNotEmpty
+            ? _selectedOptionPriority
+            : safeColor,
         'remind': _selectedOptionRemind.isNotEmpty ? true : false,
         'stringRemind': _selectedOptionRemind,
         'time': timeSet,
@@ -259,7 +302,8 @@ class AppStateChange extends ChangeNotifier {
   }
 
   void updateDoneToDo(String value) async {
-    var itemIndex = _todoManager.todoList.indexWhere((item) => item['name'] == value);
+    var itemIndex =
+    _todoManager.todoList.indexWhere((item) => item['name'] == value);
     if (itemIndex != -1) {
       var item = _todoManager.todoList[itemIndex].cast<String, dynamic>();
       var updatedItem = {...item};
@@ -280,4 +324,3 @@ class AppStateChange extends ChangeNotifier {
     return _todoManager.todoList[index];
   }
 }
-
